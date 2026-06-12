@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Services;
 
@@ -7,6 +8,7 @@ use App\Models\LedgerEntry;
 use App\Models\LedgerTransaction;
 use App\Models\Wallet;
 use App\Models\AuditLog;
+use App\Jobs\RecordAuditLogJob;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use LogicException;
@@ -41,7 +43,7 @@ class LedgerService
                 ['wallet_id' => null, 'entry_type' => 'debit', 'amount' => $amount],
             ]);
 
-            return $this->finalizeTransaction($transaction, TransactionStatus::Posted);
+            return $this->finalizeTransaction($transaction, TransactionStatus::Posted, true);
         });
     }
 
@@ -165,7 +167,7 @@ class LedgerService
         }
     }
 
-    public function finalizeTransaction(LedgerTransaction $transaction, TransactionStatus $status): LedgerTransaction
+    public function finalizeTransaction(LedgerTransaction $transaction, TransactionStatus $status, bool $queueAudit = false): LedgerTransaction
     {
         if ($transaction->entries()->count() === 0) {
             throw new LogicException('Transaction entries must be recorded before finalizing.');
@@ -178,16 +180,20 @@ class LedgerService
         $transaction->status = $status;
         $transaction->save();
 
-        // record audit logs for each entry
-        foreach ($transaction->entries as $entry) {
-            AuditLog::create([
-                'user_id' => $entry->wallet?->user_id ?? null,
-                'wallet_id' => $entry->wallet_id,
-                'transaction_id' => $transaction->id,
-                'action' => $transaction->type,
-                'amount' => $entry->entry_type === 'credit' ? $entry->amount : -$entry->amount,
-                'meta' => ['entry_type' => $entry->entry_type],
-            ]);
+        // either record audit logs synchronously or queue a job to do it
+        if ($queueAudit) {
+            RecordAuditLogJob::dispatch($transaction->id);
+        } else {
+            foreach ($transaction->entries as $entry) {
+                AuditLog::create([
+                    'user_id' => $entry->wallet?->user_id ?? null,
+                    'wallet_id' => $entry->wallet_id,
+                    'transaction_id' => $transaction->id,
+                    'action' => $transaction->type,
+                    'amount' => $entry->entry_type === 'credit' ? $entry->amount : -$entry->amount,
+                    'meta' => ['entry_type' => $entry->entry_type],
+                ]);
+            }
         }
 
         return $transaction;

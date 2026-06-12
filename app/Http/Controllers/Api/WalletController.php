@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -8,18 +8,26 @@ use App\Http\Requests\WithdrawRequest;
 use App\Models\IdempotencyKey;
 use App\Models\Wallet;
 use App\Services\LedgerService;
+use OpenApi\Attributes as OA;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use LogicException;
 
+#[OA\Tag(name: 'Wallet')]
 class WalletController extends Controller
 {
     public function __construct(private LedgerService $ledgerService)
     {
     }
 
+    #[OA\Get(
+        path: '/api/wallet',
+        summary: 'Get wallet for current user',
+        tags: ['Wallet']
+    )]
+    #[OA\Response(response: 200, description: 'Wallet info')]
     public function show(Request $request): JsonResponse
     {
         $wallet = $request->user()->wallet;
@@ -31,6 +39,21 @@ class WalletController extends Controller
         return response()->json(['wallet' => $wallet->fresh()]);
     }
 
+    #[OA\Post(
+        path: '/api/wallet/deposit',
+        summary: 'Deposit funds into wallet',
+        tags: ['Wallet']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'amount', type: 'integer'),
+            new OA\Property(property: 'description', type: 'string')
+        ])
+    )]
+    #[OA\Response(response: 200, description: 'Deposit successful')]
+    #[OA\Response(response: 400, description: 'Bad request')]
+    #[OA\Response(response: 409, description: 'Idempotency conflict')]
     public function deposit(DepositRequest $request): JsonResponse
     {
         $wallet = $request->user()->wallet;
@@ -83,6 +106,21 @@ class WalletController extends Controller
         return $response;
     }
 
+    #[OA\Post(
+        path: '/api/wallet/withdraw',
+        summary: 'Withdraw funds from wallet',
+        tags: ['Wallet']
+    )]
+    #[OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(properties: [
+            new OA\Property(property: 'amount', type: 'integer'),
+            new OA\Property(property: 'description', type: 'string')
+        ])
+    )]
+    #[OA\Response(response: 200, description: 'Withdrawal successful')]
+    #[OA\Response(response: 400, description: 'Bad request')]
+    #[OA\Response(response: 422, description: 'Insufficient funds or validation error')]
     public function withdraw(WithdrawRequest $request): JsonResponse
     {
         $wallet = $request->user()->wallet;
@@ -144,6 +182,14 @@ class WalletController extends Controller
         return $response;
     }
 
+    #[OA\Get(
+        path: '/api/wallet/statement',
+        summary: 'Get wallet statement',
+        tags: ['Wallet']
+    )]
+    #[OA\Parameter(name: 'from', in: 'query', schema: new OA\Schema(type: 'string'), required: false)]
+    #[OA\Parameter(name: 'to', in: 'query', schema: new OA\Schema(type: 'string'), required: false)]
+    #[OA\Response(response: 200, description: 'Statement returned')]
     public function statement(Request $request): JsonResponse
     {
         $wallet = $request->user()->wallet;

@@ -1,5 +1,5 @@
 <?php
-
+declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -18,6 +18,7 @@ class TransferRequest extends FormRequest
             'recipient_wallet_id' => ['required', 'integer', 'exists:wallets,id'],
             'amount' => ['required', 'integer', 'min:1'],
             'description' => ['nullable', 'string', 'max:255'],
+            'auto_retry' => ['nullable', 'boolean'],
         ];
     }
 }
