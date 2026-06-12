@@ -92,7 +92,7 @@ class WalletController extends Controller
             $record->request_hash = $payloadHash;
             $record->save();
 
-            $transaction = $this->ledgerService->deposit($wallet, $request->amount, $request->description);
+            $transaction = $this->ledgerService->deposit($wallet, (int) $request->amount, $request->description);
 
             $body = ['wallet' => $wallet->fresh(), 'transaction' => $transaction];
 
@@ -160,7 +160,7 @@ class WalletController extends Controller
             $record->save();
 
             try {
-                $transaction = $this->ledgerService->withdraw($wallet, $request->amount, $request->description);
+                $transaction = $this->ledgerService->withdraw($wallet, (int) $request->amount, $request->description);
             } catch (LogicException $exception) {
                 // store failure response
                 $record->response_code = 422;
