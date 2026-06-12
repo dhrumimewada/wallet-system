@@ -1,58 +1,518 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Wallet Ledger System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A production-oriented Wallet Ledger API built with Laravel 13. The system supports wallet management, deposits, withdrawals, transfers, transaction reversals, idempotent operations, API authentication, Swagger documentation, and automated testing.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Table of Contents
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+* Prerequisites
+* Installation
+* Project Structure
+* Environment Configuration
+* Database Setup
+* Running the Application
+* API Documentation
+* Authentication
+* Available APIs
+* Idempotency Support
+* Running Tests
+* Features
+* Technologies Used
+* Troubleshooting
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+# Prerequisites
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Before setting up this project, ensure you have the following installed:
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Required Software
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+* PHP 8.3+
+* Composer 2.x
+* MySQL 8+ (or PostgreSQL)
+* Git
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Verify installation:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+php -v
+composer -V
+mysql --version
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+# Installation
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Step 1: Clone Repository
 
-## Code of Conduct
+```bash
+git clone <repository-url>
+cd wallet-system
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Step 2: Install Dependencies
 
-## Security Vulnerabilities
+```bash
+composer install
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Step 3: Environment Setup
 
-## License
+Copy environment file:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+cp .env.example .env
+```
+
+Generate application key:
+
+```bash
+php artisan key:generate
+```
+
+---
+
+# Environment Configuration
+
+Update your `.env` file:
+
+```env
+APP_NAME="Wallet System"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=wallet_system
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+---
+
+# Database Setup
+
+## Create Database
+
+```sql
+CREATE DATABASE wallet_system;
+```
+
+## Run Migrations
+
+```bash
+php artisan migrate
+```
+
+## Seed Database
+
+Run all seeders:
+
+```bash
+php artisan db:seed
+```
+
+Or rebuild the database from scratch:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+---
+
+# Project Structure
+
+```text
+wallet-system/
+├── app/
+│   ├── DTOs/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   └── Requests/
+│   ├── Models/
+│   ├── Services/
+│   └── OpenApi/
+├── bootstrap/
+├── config/
+├── database/
+│   ├── factories/
+│   ├── migrations/
+│   └── seeders/
+├── routes/
+│   └── api.php
+├── storage/
+├── tests/
+│   ├── Feature/
+│   └── Unit/
+├── composer.json
+└── README.md
+```
+
+---
+
+# Running the Application
+
+Start Laravel development server:
+
+```bash
+php artisan serve
+```
+
+Application URL:
+
+```text
+http://127.0.0.1:8000
+```
+
+---
+
+# API Documentation
+
+Swagger documentation is available using L5-Swagger.
+
+Generate documentation:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Swagger UI:
+
+```text
+http://127.0.0.1:8000/api/documentation
+```
+
+---
+
+# Authentication
+
+The API uses Laravel Sanctum authentication.
+
+## Register
+
+```http
+POST /api/register
+```
+
+Request:
+
+```json
+{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123"
+}
+```
+
+---
+
+## Login
+
+```http
+POST /api/login
+```
+
+Request:
+
+```json
+{
+    "email": "john@example.com",
+    "password": "password123"
+}
+```
+
+Response:
+
+```json
+{
+    "user": {},
+    "token": "YOUR_ACCESS_TOKEN",
+    "token_type": "Bearer"
+}
+```
+
+Use token:
+
+```http
+Authorization: Bearer YOUR_ACCESS_TOKEN
+```
+
+---
+
+# Available APIs
+
+## Authentication APIs
+
+```http
+POST /api/register
+POST /api/login
+GET  /api/me
+POST /api/logout
+```
+
+## Wallet APIs
+
+```http
+GET  /api/wallet
+
+POST /api/wallet/deposit
+POST /api/wallet/withdraw
+
+POST /api/wallet/transfer
+```
+
+## Transaction APIs
+
+```http
+POST /api/wallet/transactions/{transaction_uuid}/reverse
+```
+
+---
+
+# Idempotency Support
+
+The following endpoints support idempotent requests:
+
+```http
+POST /api/wallet/deposit
+POST /api/wallet/withdraw
+POST /api/wallet/transfer
+POST /api/wallet/transactions/{transaction_uuid}/reverse
+```
+
+Pass a unique header:
+
+```http
+Idempotency-Key: transfer-001
+```
+
+Example:
+
+```http
+POST /api/wallet/transfer
+
+Authorization: Bearer TOKEN
+Idempotency-Key: transfer-001
+```
+
+Using the same key twice prevents duplicate transactions.
+
+---
+
+# Running Tests
+
+Run all tests:
+
+```bash
+php artisan test
+```
+
+Run Pest directly:
+
+```bash
+./vendor/bin/pest
+```
+
+Run Feature Tests:
+
+```bash
+php artisan test --testsuite=Feature
+```
+
+Run Unit Tests:
+
+```bash
+php artisan test --testsuite=Unit
+```
+
+Generate test coverage:
+
+```bash
+php artisan test --coverage
+```
+
+---
+
+# Features
+
+### Authentication
+
+* User registration
+* User login
+* Sanctum token authentication
+* Logout support
+
+### Wallet Operations
+
+* View wallet balance
+* Deposit funds
+* Withdraw funds
+* Transfer funds between wallets
+
+### Ledger System
+
+* Immutable transaction records
+* Transaction reversals
+* Audit-friendly design
+* UUID transaction identifiers
+
+### Reliability
+
+* Idempotent API requests
+* Database transactions
+* Validation layer
+* Exception handling
+
+### Documentation
+
+* OpenAPI 3.0
+* Swagger UI
+* Request/Response documentation
+
+### Testing
+
+* Pest Framework
+* Feature Tests
+* Unit Tests
+
+---
+
+# Technologies Used
+
+## Backend
+
+* Laravel 13
+* PHP 8.3
+* Laravel Sanctum
+
+## Database
+
+* MySQL
+
+## Documentation
+
+* L5 Swagger
+* OpenAPI 3
+
+## Testing
+
+* Pest
+* PHPUnit
+
+---
+
+# Useful Commands
+
+Install dependencies:
+
+```bash
+composer install
+```
+
+Generate application key:
+
+```bash
+php artisan key:generate
+```
+
+Run migrations:
+
+```bash
+php artisan migrate
+```
+
+Seed database:
+
+```bash
+php artisan db:seed
+```
+
+Fresh migration and seed:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Generate Swagger:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Clear cache:
+
+```bash
+php artisan optimize:clear
+```
+
+Run tests:
+
+```bash
+php artisan test
+```
+
+---
+
+# Troubleshooting
+
+## Migration Errors
+
+Reset database:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Verify database credentials in `.env`.
+
+---
+
+## Swagger Documentation Not Loading
+
+Regenerate docs:
+
+```bash
+php artisan l5-swagger:generate
+```
+
+Clear cache:
+
+```bash
+php artisan optimize:clear
+```
+
+---
+
+## Authentication Errors
+
+Verify Bearer token is included:
+
+```http
+Authorization: Bearer YOUR_TOKEN
+```
+
+---
+
+## Test Failures
+
+Refresh database and rerun tests:
+
+```bash
+php artisan migrate:fresh --seed
+php artisan test
+```
+
+---
+
+# License
+
+This project was created as a Wallet Ledger System assessment project demonstrating production-grade API development practices using Laravel, Sanctum, Swagger, and Pest.
+
+---
+
+Built with Laravel 13, Sanctum, Swagger, and Pest.
